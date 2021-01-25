@@ -32,6 +32,11 @@ class scw_simple_catalog_woocommerce_plugin {
 	const SETTINGS_NAMESPACE = 'simple_woocommerce_catalog';
 
 	public function __construct() {
+		$url = $_SERVER['REQUEST_URI'];
+		$urlParts = explode ('/', $url);
+		$language = $urlParts[1];
+		if($language != 'tr')
+		{
 		if ( is_admin() ) {
 			add_filter( 'woocommerce_settings_tabs_array', array( $this, 'scw_add_settings_tab' ), 50) ;
 			add_action( 'woocommerce_settings_tabs_' . self::SETTINGS_NAMESPACE, array( $this, 'scw_catalog_settings_tab' ) );
@@ -43,10 +48,13 @@ class scw_simple_catalog_woocommerce_plugin {
 			add_action( 'init', array( $this, 'scw_catalog_remove_ratings' ) );
 			add_action( 'init', array( $this, 'scw_catalog_remove_reviews' ) );
 			add_action( 'init', array( $this, 'scw_shop_remove_cart_buttons' ) );
+			add_action( 'init', array( $this, 'scw_hide_sale_label' ) );
+			add_action( 'init', array( $this, 'scw_shopping_cart_widget' ) );
 			add_action( 'woocommerce_single_product_summary', array( $this, 'scw_single_product_remove_cart_buttons' ) );
 			add_action('template_redirect', array( $this, 'scw_catalog_cart_redirect') );
 			add_action('template_redirect', array( $this, 'scw_catalog_checkout_redirect') );
 		}
+	}
 	}
 
 	/**
@@ -235,7 +243,7 @@ class scw_simple_catalog_woocommerce_plugin {
 	 * Hide the Add to Cart button on the shop page
 	 */
 	public function scw_shop_hide_cart_buttons() {
-		remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart');
+		remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart', 10 );
 	}
 
 	/**
@@ -254,23 +262,21 @@ class scw_simple_catalog_woocommerce_plugin {
 				break;
 		}
 	}
-
+	/*
+	This hides SALE label, it's useless if you have on catalog_mode
+	*/
+	public function scw_hide_sale_label(){
+		remove_action( 'woocommerce_before_shop_loop_item_title', 'woocommerce_show_product_loop_sale_flash', 10 );
+		remove_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_product_sale_flash', 10 );
+	}
+	public function scw_shopping_cart_widget(){
+		add_filter( 'woocommerce_widget_cart_is_hidden', '__return_true' );
+	}
 	/**
 	 * Hide the Add to Cart button on the single product page
 	 */
 	public function scw_single_product_hide_cart_buttons() {
-		global $product;
-
-		if( $product->is_type('variable') ) {
-			// Remove price on Variation
-			remove_action( 'woocommerce_single_variation', 'woocommerce_single_variation', 10);
-
-			// Remove Add to Cart on Variation
-			remove_action( 'woocommerce_single_variation', 'woocommerce_single_variation_add_to_cart_button', 20 );
-		}
-		else {
-			remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
-		}
+		remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_add_to_cart', 30 );
 	}
 
 	/**
