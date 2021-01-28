@@ -25,17 +25,16 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see http://www.gnu.org/licenses/gpl-2.0.html.
 */
-
+include('class-wc-geolocation.php'); // woocommerce geolocation path, you need to change it before use
 
 class scw_simple_catalog_woocommerce_plugin {
 
 	const SETTINGS_NAMESPACE = 'simple_woocommerce_catalog';
 
 	public function __construct() {
-		$url = $_SERVER['REQUEST_URI'];
-		$urlParts = explode ('/', $url);
-		$language = $urlParts[1];
-		if($language != 'tr')
+		$location = WC_Geolocation::geolocate_ip();
+		$country = $location['country'];
+		if($country != 'TR')
 		{
 		if ( is_admin() ) {
 			add_filter( 'woocommerce_settings_tabs_array', array( $this, 'scw_add_settings_tab' ), 50) ;
@@ -57,6 +56,7 @@ class scw_simple_catalog_woocommerce_plugin {
 	}
 	}
 
+
 	/**
 	 * Add a new tab to the WooCommerce Settings page
 	 */
@@ -64,7 +64,7 @@ class scw_simple_catalog_woocommerce_plugin {
 		$settings_tabs[self::SETTINGS_NAMESPACE] = __( 'Simple Catalog', 'simple-catalog-for-woocommerce' );
 		return $settings_tabs;
 	}
-
+	
 	/**
 	 * Add a settings link to plugin page
 	 */
